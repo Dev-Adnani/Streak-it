@@ -1,0 +1,100 @@
+plugins {
+    // Standard Android & Kotlin plugin for an application module
+    id "com.android.application"
+    // START: FlutterFire Configuration
+    id 'com.google.gms.google-services'
+    // END: FlutterFire Configuration
+    id "kotlin-android"
+
+    // The new Flutter Gradle Plugin (introduced in Flutter 3.13+).
+    // Must be applied after the Android and Kotlin Gradle plugins.
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader("UTF-8") { reader ->
+        localProperties.load(reader)
+    }
+}
+
+// Version code & name from local.properties (optional approach)
+def flutterVersionCode = localProperties.getProperty("flutter.versionCode")
+if (flutterVersionCode == null) {
+    flutterVersionCode = "1"
+}
+
+def flutterVersionName = localProperties.getProperty("flutter.versionName")
+if (flutterVersionName == null) {
+    flutterVersionName = "1.0"
+}
+
+android {
+    // The namespace (required for AGP 8+).
+    namespace = "com.selfscape.streakscape"
+
+    // compileSdkVersion set from Flutter's Gradle extension (via dev.flutter.flutter-gradle-plugin)
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
+
+    // Enable desugaring (necessary for scheduling older APIs etc.)
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    defaultConfig {
+        applicationId = "com.selfscape.streakscape"
+        multiDexEnabled true
+        minSdk = 23
+        targetSdk = 34
+
+        // Using the version code & version name from local.properties
+        versionCode = flutterVersionCode.toInteger()
+        versionName = flutterVersionName
+    }
+
+    signingConfigs {
+        release {
+            keyAlias = keystoreProperties['keyAlias']
+            keyPassword = keystoreProperties['keyPassword']
+            storeFile = keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+            storePassword = keystoreProperties['storePassword']
+        }
+    }
+
+    buildTypes {
+        release {
+            // By default, uses debug signing config if you haven't set up a release key
+            // signingConfig = signingConfigs.debug
+            minifyEnabled true   
+            shrinkResources true   
+            signingConfig = signingConfigs.release
+        }
+    }
+}
+
+dependencies {
+    // Required for Java 8+ language features (e.g., streams, lambdas)
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+
+    // Fix for R8 missing class: com.google.j2objc.annotations.RetainedWith
+    implementation "com.google.j2objc:j2objc-annotations:2.8"
+}
+
+flutter {
+    // Tells Gradle where to find the Flutter module
+    source = "../.."
+}
